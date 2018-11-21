@@ -1,4 +1,5 @@
 const functions = require("firebase-functions");
+
 const { dialogflow, Permission, Suggestions } = require("actions-on-google");
 
 const app = dialogflow({ debug: true });
