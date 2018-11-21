@@ -1,13 +1,6 @@
 const functions = require("firebase-functions");
 
-// // Create and Deploy Your First Cloud Functions
-// // https://firebase.google.com/docs/functions/write-firebase-functions
-//
-// exports.helloWorld = functions.https.onRequest((request, response) => {
-//  response.send("Hello from Firebase!");
-// });
-
-const { dialogflow, Permission } = require("actions-on-google");
+const { dialogflow, Permission, Suggestions } = require("actions-on-google");
 
 const app = dialogflow({ debug: true });
 
@@ -20,19 +13,24 @@ app.intent("Default Welcome Intent", conv => {
   );
 });
 
-app.intent("PermissionIntent", (conv, params, granted) => {
+app.intent("actions_intent_PERMISSION", (conv, params, granted) => {
   if (!granted) {
-    conv.user.storage.name = "Google";
     conv.ask("No worries, What is your favorite color?");
+    conv.ask(new Suggestions("Blue", "Red", "Green"));
   } else {
-    conv.user.storage.name = conv.user.name.display;
-    conv.ask(`What is your favorite color, ${conv.user.storage.name}?`);
+    conv.data.userName = conv.user.name.display;
+    conv.ask(`Thanks, ${conv.data.userName}. What's your favorite color?`);
+    conv.ask(new Suggestions("Blue", "Red", "Green"));
   }
 });
 
-app.intent("FavoriteColorIntent", (conv, params) => {
+app.intent("favorite color", (conv, params) => {
   const color = params.color;
-  conv.ask(`${conv.user.storage.name}'s favorite color is ${color}`);
+  if (conv.data.userName) {
+    conv.close(`${conv.data.userName}, your favorite color is ${color}.`);
+  } else {
+    conv.close(`Your favorite color is ${color}.`);
+  }
 });
 
 exports.dialogflowWebhook = functions.https.onRequest(app);
